@@ -3428,7 +3428,6 @@ static struct clk_freq_tbl clk_tbl_gfx3d[] = {
 	F_GFX3D(320000000, pll2,  2,  5),
 	F_GFX3D(400000000, pll2,  1,  2),
 	F_GFX3D(450000000, pll15, 1,  2),
-	F_GFX3D(487500000, pll15, 1,  2),
 	F_END
 };
 
@@ -3448,8 +3447,8 @@ static struct clk_freq_tbl clk_tbl_gfx3d_8960[] = {
 	F_GFX3D(228571000, pll2, 2,  7),
 	F_GFX3D(266667000, pll2, 1,  3),
 	F_GFX3D(300000000, pll3, 1,  4),
-        F_GFX3D(320000000, pll2, 2,  5),
-        F_GFX3D(400000000, pll2, 1,  2),
+	F_GFX3D(320000000, pll2, 2,  5),
+	F_GFX3D(400000000, pll2, 1,  2),
 	F_END
 };
 
@@ -3462,7 +3461,7 @@ static unsigned long fmax_gfx3d_8064ab[MAX_VDD_LEVELS] __initdata = {
 static unsigned long fmax_gfx3d_8064[MAX_VDD_LEVELS] __initdata = {
 	[VDD_DIG_LOW]     = 128000000,
 	[VDD_DIG_NOMINAL] = 325000000,
-	[VDD_DIG_HIGH]    = 487500000
+	[VDD_DIG_HIGH]    = 450000000
 };
 
 static unsigned long fmax_gfx3d_8930[MAX_VDD_LEVELS] __initdata = {
@@ -6758,9 +6757,9 @@ static void __init reg_init(void)
 	}
 
 	if (cpu_is_apq8064()) {
-	 pll15_config.l = 0x21 | BVAL(31, 7, 0x620);
-         pll15_config.m = 0x1;
-         pll15_config.n = 0x3; 
+	 	pll15_config.l = 0x21 | BVAL(31, 7, 0x620);
+         	pll15_config.m = 0x1;
+         	pll15_config.n = 0x3; 
 		
 		configure_sr_pll(&pll15_config, &pll15_regs, 0);
 	} else if (cpu_is_apq8064ab()) {
@@ -6922,7 +6921,7 @@ static int __init msm8960_clock_late_init(void)
 	if (WARN(IS_ERR(mmfpb_a_clk), "mmfpb_a_clk not found (%ld)\n",
 			PTR_ERR(mmfpb_a_clk)))
 		return PTR_ERR(mmfpb_a_clk);
-	rc = clk_set_rate(mmfpb_a_clk, 76800000);
+	rc = clk_set_rate(mmfpb_a_clk, 38400000);
 	if (WARN(rc, "mmfpb_a_clk rate was not set (%d)\n", rc))
 		return rc;
 	rc = clk_prepare_enable(mmfpb_a_clk);
@@ -6933,7 +6932,7 @@ static int __init msm8960_clock_late_init(void)
 	if (WARN(IS_ERR(cfpb_a_clk), "cfpb_a_clk not found (%ld)\n",
 			PTR_ERR(cfpb_a_clk)))
 		return PTR_ERR(cfpb_a_clk);
-	rc = clk_set_rate(cfpb_a_clk, 64000000);
+	rc = clk_set_rate(cfpb_a_clk, 32000000);
 	if (WARN(rc, "cfpb_a_clk rate was not set (%d)\n", rc))
 		return rc;
 	rc = clk_prepare_enable(cfpb_a_clk);

@@ -537,15 +537,17 @@ static int acpuclk_krait_set_rate(int cpu, unsigned long rate,
 	if (prev_l2_src == HFPLL)
 		disable_l2_regulators();
 
+	set_acpuclk_foot_print(cpu, 0x7);
+
 	
 	set_bus_bw(drv.l2_freq_tbl[tgt_l2_l].bw_level);
 
-	set_acpuclk_foot_print(cpu, 0x7);
+	set_acpuclk_foot_print(cpu, 0x8);
 
 	
 	decrease_vdd(cpu, &vdd_data, reason);
 
-	set_acpuclk_foot_print(cpu, 0x8);
+	set_acpuclk_foot_print(cpu, 0x9);
 
 	
 	if (reason == SETRATE_CPUFREQ && tgt->avsdscr_setting) {
@@ -559,7 +561,7 @@ out:
 	if (reason == SETRATE_CPUFREQ || reason == SETRATE_HOTPLUG)
 		mutex_unlock(&driver_lock);
 
-	set_acpuclk_foot_print(cpu, 0x9);
+	set_acpuclk_foot_print(cpu, 0xA);
 
 	return rc;
 }

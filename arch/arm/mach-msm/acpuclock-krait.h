@@ -21,12 +21,12 @@
 			{\
 				.src = MSM_BUS_MASTER_AMPSS_M0, \
 				.dst = MSM_BUS_SLAVE_EBI_CH0, \
-				.ib = (_bw) * 1000000ULL, \
+				.ib = (_bw) * 1000000UL, \
 			}, \
 			{ \
 				.src = MSM_BUS_MASTER_AMPSS_M1, \
 				.dst = MSM_BUS_SLAVE_EBI_CH0, \
-				.ib = (_bw) * 1000000ULL, \
+				.ib = (_bw) * 1000000UL, \
 			}, \
 		}, \
 		.num_paths = 2, \

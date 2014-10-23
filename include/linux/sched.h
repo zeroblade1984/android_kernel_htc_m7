@@ -119,9 +119,6 @@ extern unsigned long nr_iowait_cpu(int cpu);
 extern unsigned long this_cpu_load(void);
 
 extern void sched_get_nr_running_avg(int *avg, int *iowait_avg);
-extern unsigned long get_avg_nr_running(unsigned int cpu);
-extern unsigned long avg_nr_running(void);
-
 extern void calc_global_load(unsigned long ticks);
 
 extern unsigned long get_parent_ip(unsigned long addr);

@@ -1575,19 +1575,6 @@ config MSM_RPCSERVER_WATCHDOG
 	help
 	  The dog_keepalive server handles watchdog events.
 
-config FORCE_FAST_CHARGE
-	bool "Force AC charge mode at will"
-	default y
-	help
-	  A simple sysfs interface to force adapters that
-	  are detected as USB to charge as AC.
-
-config USERSPACE_VOLTAGE_CONTROL
-	bool "Enable Userspace CPU Voltage Control"
-	default y
-	help
-	  userspace voltage control
-
 config MSM_RPC_WATCHDOG
 	depends on MSM_ONCRPCROUTER
 	default n
@@ -2386,6 +2373,18 @@ config MSM8930_ONLY
 		help
 		 Help to separate MSM8930 code from other ARCH
 
+config AUDIO_LOW_LATENCY
+		default n
+		bool "For AUDIO_LOW_LATENCY only"
+		help
+		 Help to separate the AUDIO_LOW_LATENCY from other board config
+
+config AUDIO_24BIT
+		default n
+		bool "For AUDIO_24BIT only"
+		help
+		 Help to separate the AUDIO_24BIT from other board config
+
 config MSM_QDSP6_APR
 	bool "Audio QDSP6 APR support"
 	depends on MSM_SMD
@@ -2744,10 +2743,5 @@ config MSM_CPU_PWRCTL
 	  stand alone power collapse operation. Selecting this option
 	  ensures that they are always off.
 
-config USERSPACE_VOLTAGE_CONTROL
-	bool "Enable Userspace CPU Voltage Control"
-	default y
-	help
-        userspace voltage control
 endif
 

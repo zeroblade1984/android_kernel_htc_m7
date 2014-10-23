@@ -40,10 +40,6 @@
 #include <mach/htc_charger.h>
 #include <mach/htc_battery_cell.h>
 
-#ifdef CONFIG_FORCE_FAST_CHARGE
-#include <linux/fastchg.h>
-#endif
-
 #define HTC_BATT_CHG_DIS_BIT_EOC	(1)
 #define HTC_BATT_CHG_DIS_BIT_ID		(1<<1)
 #define HTC_BATT_CHG_DIS_BIT_TMP	(1<<2)
@@ -395,13 +391,6 @@ int htc_charger_event_notify(enum htc_charger_event event)
 		htc_batt_schedule_batt_info_update();
 		break;
 	case HTC_CHARGER_EVENT_SRC_USB: 
-		if (force_fast_charge == 1) {
-			printk("[FASTCHARGE] Forcing CHARGER_AC");
-			latest_chg_src = CHARGER_AC;
-		} else {
-			printk("[FASTCHARGE] NOT set, using normal CHARGER_USB");
-			latest_chg_src = CHARGER_USB;
-		}
 		htc_batt_schedule_batt_info_update();
 		break;
 	case HTC_CHARGER_EVENT_SRC_AC: 
@@ -422,13 +411,10 @@ int htc_charger_event_notify(enum htc_charger_event event)
 								UNKNOWN_USB_DETECT_DELAY_MS)));
 		break;
 	case HTC_CHARGER_EVENT_SRC_UNKNOWN_USB: 
-		if (force_fast_charge == 1) {
-			printk("[FASTCHARGE] Forcing CHARGER_AC");
+		if (get_kernel_flag() & KERNEL_FLAG_ENABLE_FAST_CHARGE)
 			latest_chg_src = CHARGER_AC;
-		} else {
-			printk("[FASTCHARGE] NOT set, using normal CHARGER_UNKNOWN_USB");
+		else
 			latest_chg_src = CHARGER_UNKNOWN_USB;
-		}
 		htc_batt_schedule_batt_info_update();
 		break;
 	case HTC_CHARGER_EVENT_OVP:
