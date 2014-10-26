@@ -39,6 +39,12 @@
 #include "acpuclock-krait.h"
 #include "avs.h"
 
+#ifdef CONFIG_CPU_OVERCLOCK
+#define FREQ_TABLE_SIZE 45
+#else
+#define FREQ_TABLE_SIZE	39
+#endif
+
 #ifdef CONFIG_USERSPACE_VOLTAGE_CONTROL
 #include <linux/debugfs.h>
 
@@ -913,7 +919,7 @@ static void __init bus_init(const struct l2_level *l2_level)
 }
 
 #ifdef CONFIG_CPU_FREQ_MSM
-static struct cpufreq_frequency_table freq_table[NR_CPUS][39];
+static struct cpufreq_frequency_table freq_table[NR_CPUS][FREQ_TABLE_SIZE];
 
 static void __init cpufreq_table_init(void)
 {

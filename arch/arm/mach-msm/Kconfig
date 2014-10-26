@@ -1669,6 +1669,12 @@ config MSM_CPU_FREQ_MIN
 
 endif # CPU_FREQ_MSM
 
+config CPU_OVERCLOCK
+	bool "Enable CPU Frequency Overclocking option"
+	default n
+	help
+	  Krait CPU overclocking
+
 config USERSPACE_VOLTAGE_CONTROL
 	bool "Enable Userspace CPU Voltage Control"
 	default y
