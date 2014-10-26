@@ -277,9 +277,8 @@ static int is_rrm1_mode(void);
 
 static void power_key_restart_work_func(struct work_struct *dummy)
 {
-	int pocket_mode = power_key_check_in_pocket(1);
+	int pocket_mode = power_key_check_in_pocket();
 
-	printk(KERN_INFO "%s: power_key_check_in_pocket = %d\n", __func__, pocket_mode);
 	if (!pocket_mode && pre_power_key_led_status == 1 && !is_rrm1_mode()) {
 		
 		set_hw_reason(0);
@@ -291,7 +290,6 @@ static void power_key_restart_work_func(struct work_struct *dummy)
 		msm_restart(0, NULL);
 	}
 }
-
 static DECLARE_DELAYED_WORK(power_key_restart_work, power_key_restart_work_func);
 #endif
 
@@ -373,7 +371,7 @@ static void power_key_check_reset_work_func(struct work_struct *dummy)
 		}
 		else {
 			
-			pocket_mode = power_key_check_in_pocket(1);
+			pocket_mode = power_key_check_in_pocket();
 			if (pocket_mode) {
 				printk(KERN_INFO "[KEY] power_key_check_in_pocket = %d\n", pocket_mode);
 				aa->clear_hw_reset();

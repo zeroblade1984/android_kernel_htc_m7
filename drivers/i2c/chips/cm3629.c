@@ -38,13 +38,10 @@
 #include <linux/jiffies.h>
 #include <mach/board.h>
 #include <mach/board_htc.h>
-#define D(x...) pr_info(x)
-
+#define D(x...) pr_debug(x)
 #define I2C_RETRY_COUNT 10
-
 #define POLLING_PROXIMITY 1
 #define MFG_MODE 1
-
 #define NEAR_DELAY_TIME ((100 * HZ) / 1000)
 #define Max_open_value 50
 #ifdef POLLING_PROXIMITY
@@ -75,37 +72,27 @@ struct cm3629_info {
 	struct class *cm3629_class;
 	struct device *ls_dev;
 	struct device *ps_dev;
-
 	struct input_dev *ls_input_dev;
 	struct input_dev *ps_input_dev;
-
 	struct early_suspend early_suspend;
 	struct i2c_client *i2c_client;
 	struct workqueue_struct *lp_wq;
-
+	struct wake_lock ps_wake_lock;
 	int model;
-
 	int intr_pin;
-
 	int als_enable;
-
 	int ps_enable;
 	int ps_irq_flag;
 	int led;
-
 	uint16_t *adc_table;
 	uint16_t cali_table[10];
 	int irq;
-
 	int ls_calibrate;
-
 	int (*power)(int, uint8_t); 
 	int (*lpm_power)(uint8_t); 
 	uint32_t als_kadc;
 	uint32_t als_gadc;
 	uint16_t golden_adc;
-
-	struct wake_lock ps_wake_lock;
 	int psensor_opened;
 	int lightsensor_opened;
 	uint16_t cm3629_slave_address;
@@ -126,15 +113,12 @@ struct cm3629_info {
 	uint8_t ps_conf3_val;
 	uint8_t ps_calibration_rule; 
 	int ps_pocket_mode;
-
 	unsigned long j_start;
 	unsigned long j_end;
 	int mfg_mode;
-
 	uint8_t *mapping_table;
 	uint8_t mapping_size;
 	uint8_t ps_base_index;
-
 	uint8_t ps1_thd_no_cal;
 	uint8_t ps1_thd_with_cal;
 	uint8_t ps2_thd_no_cal;
@@ -542,7 +526,6 @@ static void report_psensor_input_event(struct cm3629_info *lpi, int interrupt_fl
 
 	lpi->j_end = jiffies;
 	
-
 	ret = get_ps_adc_value(&ps1_adc, &ps2_adc);
 	if (pocket_mode_flag == 1 || psensor_enable_by_touch == 1) {
 		D("[PS][cm3629] pocket_mode_flag: %d, psensor_enable_by_touch: %d, add delay = 7ms\n", pocket_mode_flag, psensor_enable_by_touch);
@@ -646,7 +629,6 @@ static void report_lsensor_input_event(struct cm3629_info *lpi, bool resume)
 	int level = 0, i, ret = 0;
 
 	mutex_lock(&als_get_adc_mutex);
-
 	ret = get_ls_adc_value(&adc_value, resume);
 	if (lpi->ws_calibrate) {
 		ret = get_ws_adc_value(&w_adc_value, resume);
@@ -702,7 +684,6 @@ static void report_lsensor_input_event(struct cm3629_info *lpi, bool resume)
         lpi->current_adc = adc_value;
 	if(lpi->ws_calibrate)
 		lpi->current_adc = w_adc_value;
-
 
 
 	
@@ -762,14 +743,12 @@ static int lightsensor_disable(struct cm3629_info *lpi);
 static void sensor_irq_do_work(struct work_struct *work)
 {
 	struct cm3629_info *lpi = lp_info;
-	uint8_t cmd[3];
+	uint8_t cmd[3] = {0, 0, 0};
 	uint8_t add = 0;
-
 	
 	_cm3629_I2C_Read2(lpi->cm3629_slave_address, INT_FLAG, cmd, 2);
 	add = cmd[1];
 	
-
 	if ((add & CM3629_PS1_IF_AWAY) || (add & CM3629_PS1_IF_CLOSE) ||
 	    (add & CM3629_PS2_IF_AWAY) || (add & CM3629_PS2_IF_CLOSE)) {
 		wake_lock_timeout(&(lpi->ps_wake_lock), 2*HZ);
@@ -1038,7 +1017,6 @@ static int psensor_enable(struct cm3629_info *lpi)
 	sensor_lpm_power(0);
 	blocking_notifier_call_chain(&psensor_notifier_list, 1, NULL);
 	lpi->j_start = jiffies;
-	
 
 	
 	input_report_abs(lpi->ps_input_dev, ABS_DISTANCE, -1);
@@ -1128,7 +1106,6 @@ static int psensor_disable(struct cm3629_info *lpi)
 	lpi->ps_conf1_val = lpi->ps_conf1_val_from_board;
 	lpi->ps_conf2_val = lpi->ps_conf2_val_from_board;
 	lpi->ps_pocket_mode = 0;
-
 	ret = irq_set_irq_wake(lpi->irq, 0);
 	if (ret < 0) {
 		pr_err(
@@ -1491,9 +1468,7 @@ static long lightsensor_ioctl(struct file *file, unsigned int cmd,
 {
 	int rc, val;
 	struct cm3629_info *lpi = lp_info;
-
 	
-
 	switch (cmd) {
 	case LIGHTSENSOR_IOCTL_ENABLE:
 		if (get_user(val, (unsigned long __user *)arg)) {
@@ -2421,7 +2396,7 @@ err_free_ps_input_device:
 	return ret;
 }
 
-int power_key_check_in_pocket(int check_dark)
+int power_key_check_in_pocket(void)
 {
 	struct cm3629_info *lpi = lp_info;
 	int ls_dark;
@@ -2456,13 +2431,33 @@ int power_key_check_in_pocket(int check_dark)
 			break;
 		}
 	}
-	D("[cm3629] %s ls_adc %d, ls_level %d\n", __func__, ls_adc, ls_level);
 	ls_dark = (ls_level <= lpi->dark_level) ? 1 : 0;
+	D("[cm3629] %s ls_adc = %d, ls_level = %d, ls_dark %d\n", __func__, ls_adc, ls_level, ls_dark);
 
 	D("[cm3629] %s --- ls_dark %d\n", __func__, ls_dark);
 	pocket_mode_flag = 0;
-	return ((check_dark && ls_dark && ps_near) || (!check_dark && ps_near));
+	return (ls_dark && ps_near);
 }
+
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_WAKE_GESTURES
+int pocket_detection_check(void)
+{
+	struct cm3629_info *lpi = lp_info;
+
+	if (!is_probe_success) {
+		D("[cm3629] %s return by cm3629 probe fail\n", __func__);
+		return 0;
+	}
+	pocket_mode_flag = 1;
+
+	psensor_enable(lpi);
+	D("[cm3629] %s ps_near = %d\n", __func__, ps_near);
+	psensor_disable(lpi);
+
+	pocket_mode_flag = 0;
+	return (ps_near);
+}
+#endif
 
 int psensor_enable_by_touch_driver(int on)
 {
@@ -2602,8 +2597,6 @@ static int cm3629_probe(struct i2c_client *client,
 	if (!lpi)
 		return -ENOMEM;
 
-	
-
 	lpi->i2c_client = client;
 	pdata = client->dev.platform_data;
 	if (!pdata) {
@@ -2614,9 +2607,7 @@ static int cm3629_probe(struct i2c_client *client,
 	}
 
 	lpi->irq = client->irq;
-
 	lpi->mfg_mode = board_mfg_mode();
-
 	i2c_set_clientdata(client, lpi);
 	lpi->model = pdata->model;
 	lpi->intr_pin = pdata->intr;
@@ -2745,17 +2736,14 @@ static int cm3629_probe(struct i2c_client *client,
 		goto err_create_ls_device;
 	}
 
-	
 	ret = device_create_file(lpi->ls_dev, &dev_attr_ls_adc);
 	if (ret)
 		goto err_create_ls_device_file;
 
-	
 	ret = device_create_file(lpi->ls_dev, &dev_attr_ls_auto);
 	if (ret)
 		goto err_create_ls_device_file;
 
-	
 	ret = device_create_file(lpi->ls_dev, &dev_attr_ls_kadc);
 	if (ret)
 		goto err_create_ls_device_file;
@@ -2782,17 +2770,14 @@ static int cm3629_probe(struct i2c_client *client,
 		goto err_create_ls_device_file;
 	}
 
-	
 	ret = device_create_file(lpi->ps_dev, &dev_attr_ps_adc);
 	if (ret)
 		goto err_create_ps_device;
 
-	
 	ret = device_create_file(lpi->ps_dev, &dev_attr_ps_kadc);
 	if (ret)
 		goto err_create_ps_device;
 
-	
 	ret = device_create_file(lpi->ps_dev, &dev_attr_ps_canc);
 	if (ret)
 		goto err_create_ps_device;
